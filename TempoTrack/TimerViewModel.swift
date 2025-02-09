@@ -17,6 +17,7 @@ class TimerViewModel: ObservableObject {
     
     // Timer
     private var timer: Timer?
+    private var isTimerRunning = false // Track if timer is actively counting
 
     init() {
         audioMonitor.$currentAmplitude
@@ -29,12 +30,13 @@ class TimerViewModel: ObservableObject {
     
     func start() {
         audioMonitor.startMonitoring()
-        startCountdownIfNeeded()
+        isTimerRunning = true // Allow timer to start when music is detected
     }
     
     func stop() {
         audioMonitor.stopMonitoring()
         stopCountdown()
+        isTimerRunning = false
     }
     
     private func updatePianoState(amplitude: Float) {
@@ -64,12 +66,11 @@ class TimerViewModel: ObservableObject {
     }
     
     private func startCountdownIfNeeded() {
-        guard timer == nil else { return }
+        guard timer == nil, isTimerRunning else { return }
+        
         timer = Timer.scheduledTimer(withTimeInterval: 1.0, repeats: true) { [weak self] _ in
-            guard let self = self else { return }
-            guard self.timeRemaining > 0 else {
-                // Timer done
-                self.stopCountdown()
+            guard let self = self, self.timeRemaining > 0 else {
+                self?.stopCountdown()
                 return
             }
             self.timeRemaining -= 1
