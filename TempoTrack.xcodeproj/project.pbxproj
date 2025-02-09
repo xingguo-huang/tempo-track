@@ -10,9 +10,22 @@
 		FDB59F052D5963120086F3C6 /* TempoTrack.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = TempoTrack.app; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
 
+/* Begin PBXFileSystemSynchronizedBuildFileExceptionSet section */
+		FDF97E782D597021004ACAC7 /* Exceptions for "TempoTrack" folder in "TempoTrack" target */ = {
+			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
+			membershipExceptions = (
+				Info.plist,
+			);
+			target = FDB59F042D5963120086F3C6 /* TempoTrack */;
+		};
+/* End PBXFileSystemSynchronizedBuildFileExceptionSet section */
+
 /* Begin PBXFileSystemSynchronizedRootGroup section */
 		FDB59F072D5963120086F3C6 /* TempoTrack */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
+			exceptions = (
+				FDF97E782D597021004ACAC7 /* Exceptions for "TempoTrack" folder in "TempoTrack" target */,
+			);
 			path = TempoTrack;
 			sourceTree = "<group>";
 		};
@@ -255,6 +268,7 @@
 				DEVELOPMENT_TEAM = 8ZLMGWCQ73;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = TempoTrack/Info.plist;
 				INFOPLIST_KEY_NSMicrophoneUsageDescription = "This app needs the microphone to detect if the piano is being played.";
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
@@ -285,6 +299,7 @@
 				DEVELOPMENT_TEAM = 8ZLMGWCQ73;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = TempoTrack/Info.plist;
 				INFOPLIST_KEY_NSMicrophoneUsageDescription = "This app needs the microphone to detect if the piano is being played.";
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
