@@ -8,15 +8,26 @@
 import SwiftUI
 
 struct ContentView: View {
-    var body: some View {
-        VStack {
-            Image(systemName: "globe")
-                .imageScale(.large)
-                .foregroundStyle(.tint)
-            Text("Hello, world!")
+    @StateObject private var viewModel = TimerViewModel()
+
+        var body: some View {
+            VStack(spacing: 20) {
+                Text("Time Remaining: \(viewModel.timeRemaining)")
+                    .font(.largeTitle)
+                Text("Piano is \(viewModel.isPianoPlaying ? "playing" : "silent")")
+                    .font(.title2)
+                
+                HStack {
+                    Button("Start") {
+                        viewModel.start()
+                    }
+                    Button("Stop") {
+                        viewModel.stop()
+                    }
+                }
+            }
+            .padding()
         }
-        .padding()
-    }
 }
 
 #Preview {
