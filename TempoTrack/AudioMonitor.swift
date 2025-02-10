@@ -11,10 +11,14 @@ import AVFoundation
 class AudioMonitor: ObservableObject {
     private var audioEngine = AVAudioEngine()
     private let session = AVAudioSession.sharedInstance()
+    private var isMonitoring = false // ✅ Prevent multiple taps
 
     @Published var currentAmplitude: Float = 0.0
 
     func startMonitoring() {
+        guard !isMonitoring else { return } // ✅ Prevent multiple starts
+        isMonitoring = true
+        
         // Configure audio session
         do {
             try session.setCategory(.playAndRecord, mode: .default, options: .defaultToSpeaker)
@@ -25,7 +29,10 @@ class AudioMonitor: ObservableObject {
 
         let inputNode = audioEngine.inputNode
         let recordingFormat = inputNode.outputFormat(forBus: 0)
-
+        
+        // ✅ Remove existing tap before adding a new one
+        inputNode.removeTap(onBus: 0)
+        
         // Install a tap on the input node
         inputNode.installTap(onBus: 0, bufferSize: 512, format: recordingFormat) { [weak self] buffer, _ in
             self?.processAudioBuffer(buffer: buffer)
@@ -40,8 +47,11 @@ class AudioMonitor: ObservableObject {
     }
 
     func stopMonitoring() {
-        audioEngine.stop()
+        guard isMonitoring else { return } // ✅ Prevent stopping if already stopped
+        isMonitoring = false
+        
         audioEngine.inputNode.removeTap(onBus: 0)
+        audioEngine.stop()
     }
 
     private func processAudioBuffer(buffer: AVAudioPCMBuffer) {

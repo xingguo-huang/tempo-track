@@ -9,15 +9,15 @@ import Combine
 import Foundation
 
 class TimerViewModel: ObservableObject {
-    @Published var timeRemaining: Int = 60 // For example, 60 seconds
+    @Published var timeRemaining: Int = 1800 // For example, 1800 seconds
     @Published var isPianoPlaying: Bool = false
-
+    @Published var isTimerRunning: Bool = false // Track timer state
+    
     private var cancellables = Set<AnyCancellable>()
     var audioMonitor = AudioMonitor()
     
     // Timer
     private var timer: Timer?
-    private var isTimerRunning = false // Track if timer is actively counting
 
     init() {
         audioMonitor.$currentAmplitude
@@ -28,9 +28,10 @@ class TimerViewModel: ObservableObject {
             .store(in: &cancellables)
     }
     
-    func start() {
-        audioMonitor.startMonitoring()
+    func start(duration: Int) {
+        timeRemaining = duration // Set new session duration
         isTimerRunning = true // Allow timer to start when music is detected
+        audioMonitor.startMonitoring()
     }
     
     func stop() {
