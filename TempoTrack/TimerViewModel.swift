@@ -4,34 +4,31 @@
 //
 //  Created by hxg on 2/9/25.
 //
-
-import Combine
 import Foundation
+import Combine
 
 class TimerViewModel: ObservableObject {
-    @Published var timeRemaining: Int = 1800 // For example, 1800 seconds
+    @Published var timeRemaining: Int = 1800 // Example: 30 mins
     @Published var isPianoPlaying: Bool = false
-    @Published var isTimerRunning: Bool = false // Track timer state
     
     private var cancellables = Set<AnyCancellable>()
     var audioMonitor = AudioMonitor()
     
-    // Timer
     private var timer: Timer?
+    private var isTimerRunning = false
 
     init() {
-        audioMonitor.$currentAmplitude
+        audioMonitor.$detectedLabel
             .receive(on: RunLoop.main)
-            .sink { [weak self] amplitude in
-                self?.updatePianoState(amplitude: amplitude)
+            .sink { [weak self] label in
+                self?.updatePianoState(label: label)
             }
             .store(in: &cancellables)
     }
     
-    func start(duration: Int) {
-        timeRemaining = duration // Set new session duration
-        isTimerRunning = true // Allow timer to start when music is detected
+    func start() {
         audioMonitor.startMonitoring()
+        isTimerRunning = true
     }
     
     func stop() {
@@ -39,29 +36,17 @@ class TimerViewModel: ObservableObject {
         stopCountdown()
         isTimerRunning = false
     }
-    
-    private func updatePianoState(amplitude: Float) {
-        // Simple threshold logic:
-        let threshold: Float = -40.0
-        if amplitude > threshold {
-            // Piano is playing
+
+    private func updatePianoState(label: String) {
+        if label == "Piano" {
             if !isPianoPlaying {
                 isPianoPlaying = true
-                // Resume countdown
                 startCountdownIfNeeded()
             }
         } else {
-            // Possibly silent
             if isPianoPlaying {
-                // Optional: Confirm silent for a few consecutive checks
-                // to avoid false positives from short pauses
-                DispatchQueue.main.asyncAfter(deadline: .now() + 1.0) {
-                    // Double-check amplitude again, or keep a short buffer
-                    if self.audioMonitor.currentAmplitude <= threshold {
-                        self.isPianoPlaying = false
-                        self.stopCountdown()
-                    }
-                }
+                isPianoPlaying = false
+                stopCountdown()
             }
         }
     }

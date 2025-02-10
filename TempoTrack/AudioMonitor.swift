@@ -5,76 +5,57 @@
 //  Created by hxg on 2/9/25.
 //
 
-import SwiftUI
 import AVFoundation
+import SoundAnalysis
+import CoreML
 
-class AudioMonitor: ObservableObject {
+class AudioMonitor: NSObject, ObservableObject {
     private var audioEngine = AVAudioEngine()
     private let session = AVAudioSession.sharedInstance()
-    private var isMonitoring = false // ✅ Prevent multiple taps
-
-    @Published var currentAmplitude: Float = 0.0
+    private var analyzer: SNAudioStreamAnalyzer?
+    private var request: SNClassifySoundRequest?
+    
+    @Published var detectedLabel: String = "Unknown"
 
     func startMonitoring() {
-        guard !isMonitoring else { return } // ✅ Prevent multiple starts
-        isMonitoring = true
-        
-        // Configure audio session
         do {
             try session.setCategory(.playAndRecord, mode: .default, options: .defaultToSpeaker)
             try session.setActive(true)
-        } catch {
-            print("Error setting up audio session: \(error)")
-        }
 
-        let inputNode = audioEngine.inputNode
-        let recordingFormat = inputNode.outputFormat(forBus: 0)
-        
-        // ✅ Remove existing tap before adding a new one
-        inputNode.removeTap(onBus: 0)
-        
-        // Install a tap on the input node
-        inputNode.installTap(onBus: 0, bufferSize: 512, format: recordingFormat) { [weak self] buffer, _ in
-            self?.processAudioBuffer(buffer: buffer)
-        }
+            let inputNode = audioEngine.inputNode
+            let recordingFormat = inputNode.outputFormat(forBus: 0)
+            inputNode.installTap(onBus: 0, bufferSize: 512, format: recordingFormat) { buffer, time in
+                self.analyzer?.analyze(buffer, atAudioFramePosition: time.sampleTime)
+            }
 
-        // Start the engine
-        do {
+            // Initialize Sound Analysis
+            let model = try MySoundClassifier_1(configuration: MLModelConfiguration())
+            request = try SNClassifySoundRequest(mlModel: model.model)
+            analyzer = SNAudioStreamAnalyzer(format: recordingFormat)
+            
+            try analyzer?.add(request!, withObserver: self)
+
             try audioEngine.start()
         } catch {
-            print("Error starting audio engine: \(error)")
+            print("Error setting up audio monitoring: \(error)")
         }
     }
 
     func stopMonitoring() {
-        guard isMonitoring else { return } // ✅ Prevent stopping if already stopped
-        isMonitoring = false
-        
-        audioEngine.inputNode.removeTap(onBus: 0)
         audioEngine.stop()
+        audioEngine.inputNode.removeTap(onBus: 0)
     }
+}
 
-    private func processAudioBuffer(buffer: AVAudioPCMBuffer) {
-        guard let channelData = buffer.floatChannelData?[0] else {
-            return
-        }
-        // `frameLength` is how many audio frames are in this buffer
-        let frameLength = Int(buffer.frameLength)
-
-        // Calculate RMS (Root Mean Square) or a basic amplitude
-        var sum: Float = 0.0
-        for i in 0..<frameLength {
-            sum += channelData[i] * channelData[i]
-        }
-        let rms = sqrt(sum / Float(frameLength))
+// MARK: - Handle Sound Classification
+extension AudioMonitor: SNResultsObserving {
+    func request(_ request: SNRequest, didProduce result: SNResult) {
+        guard let result = result as? SNClassificationResult,
+              let classification = result.classifications.first else { return }
         
-        // Convert RMS to dB (Optional if you want dB scale)
-        let amplitude = 20.0 * log10(rms)
-        
-        // Update a published property so UI can react
         DispatchQueue.main.async {
-            self.currentAmplitude = amplitude.isNaN ? -160.0 : amplitude
+            self.detectedLabel = classification.identifier // "Piano" or "Non-Piano"
+            print("Detected: \(self.detectedLabel)")
         }
-        print("Current Amplitude: \(self.currentAmplitude) dB")
     }
 }
