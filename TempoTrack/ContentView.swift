@@ -29,7 +29,7 @@ struct ContentView: View {
             }
             
             // Countdown Timer
-            Text("Time Remaining: \(viewModel.timeRemaining)")
+            Text("Time Remaining: \(viewModel.formattedTime)")
                 .font(.largeTitle)
                 .opacity(viewModel.isPianoPlaying ? 1 : 0.3) // Dim when not active
 

@@ -82,4 +82,12 @@ class TimerViewModel: ObservableObject {
         timer?.invalidate()
         timer = nil
     }
+    
+    // ✅ Convert Time to HH:MM:SS format
+    var formattedTime: String {
+        let hours = timeRemaining / 3600
+        let minutes = (timeRemaining % 3600) / 60
+        let seconds = timeRemaining % 60
+        return String(format: "%02d:%02d:%02d", hours, minutes, seconds)
+    }
 }
